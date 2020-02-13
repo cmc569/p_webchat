@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html class="no-js">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>WebChat</title>
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="IE=11; IE=10; IE=9; IE=8; IE=7" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.8.2/css/all.css'>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+TC:100,300,400,500,700,900|Roboto:100,300,400,500,700,900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
+    <script src="js/webchat_pacific.js"></script>
+    
+    <style>
+    .flash{
+        animation:flash 1s ease infinite;
+    }
+
+    @keyframes flash {
+        0% {opacity:0;}
+        100%{opacity:1;}
+    }
+    </style>
+</head>
+
+<body>
+    <!-- 收合時 --------------------------------------------------------------------->
+    <div id="bot-chat1">
+        <div class="header-chat">
+            <div class="head-home"></div>
+        </div>
+        <div class="home-chat">
+            <a class="informasi" href="#" title="跟我聯絡">
+                <div class="info-avatar">
+                    <img class="image-icon" src="img/p-1.png" />
+                </div>
+                <div class="info-chat" style="margin-top: 5px">
+                    <span class="chat-label" id="host_welcome">您好!我是服務專員，有任何想詢問的可以隨時跟我聯絡喔~</span>
+                </div>
+            </a>
+        </div>
+        <i id="dot" class="fas fa-exclamation-circle flash" style="display:none; position: absolute;top: 6px;right: 30px;color: #fef7c0"></i>
+        <a class="close-chat" href="javascript:void">×</a>
+    </div>
+    <!-- 展開時 -------------------------------------------------------------------->
+    <div id="bot-chat" style="display: none">
+        <div class="chat_header">
+            <div class="chat_option">
+                <div class="header_img">
+                    <img class="image-icon" src="img/p-1.png" />
+                </div>
+                <span id="chat_head"></span> <br> <span class="agent" id="host_tel"></span> <span class="online">(Offline)</span>
+                <input type="text" id="frid" placeholder="frid">
+                <input type="text" id="trid" placeholder="trid">
+                <input type="hidden" id="ffpc" placeholder="ffpc">
+                <input type="hidden" id="tfpc" placeholder="tfpc">
+                <input type="hidden" id="objNo" placeholder="objNo">
+                <input type="hidden" id="mFrom" placeholder="mFrom">
+                <input type="hidden" id="h_name" placeholder="h_name">
+                <input type="hidden" id="h_tel" placeholder="h_tel">
+            </div>
+        </div>
+        <div class="chat_converse" id="chat_converse">
+        </div>
+        <div class="start-chat" style="clear: both">
+            <div class="blanter-msg">
+                <input style="display:none" id="input-image-hidden" onchange="get_image(this)" type="file" accept="image/jpeg, image/png">
+                <button onclick="HandleBrowseClick('input-image-hidden');" class="upload-pic"><i class="fas fa-camera" style="color: #bbb;font-size: 1.6em;margin-right: 10px"></i></button>
+                <textarea id="chat-input" placeholder="Send a message" maxlength="120" row="2" disabled></textarea>
+                <a href="Javascript:sendMsg()" id="send-it"><i class="zmdi zmdi-mail-send"></i></a>
+            </div>
+        </div>
+        <a class="close-chat1" href="javascript:void" style="top: 5px">×</a>
+    </div>
+
+    <script>
+    var chatroom_mode = 0;  //0:聊天室縮小、1:聊天室全開
+    var new_message = 0;    //n:未讀訊息數
+    
+    $(document).ready(function() {
+        $(".informasi").click(function() {
+            $("#bot-chat").show();
+            $("#bot-chat1").hide();
+            chatroom_mode += 1;
+            $('#head-home').hide();
+            
+            let dd = document.getElementById('chat_converse');
+            dd.scrollTo(0,dd.scrollHeight);
+        });
+
+        $(".close-chat1").click(function() {
+            $("#bot-chat1").show();
+            $("#bot-chat").hide();
+            chatroom_mode = 0;
+        });
+
+        $(".close-chat").click(function() {
+            $("#bot-chat1").hide();
+
+        });
+        
+    });
+    </script>
+    <!--此頁上傳圖片 ---------------------------------------------------->
+    <script>
+    function HandleBrowseClick(input_image) {
+        var fileinput = document.getElementById(input_image);
+        fileinput.click();
+    }
+    </script>
+</body>
+
+</html>
