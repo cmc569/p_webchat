@@ -5,16 +5,16 @@ const mysql = require('mysql');
 const querystring = require('querystring');
 
 
+//設定 listen port
+const port = 8992;
+
 //設定 DB 連線資訊
 const db_data = {
     host: 'accu-qa.mysql.database.azure.com',
     user: 'aqUser@accu-qa',
     password: 'AccuHit5008!!',
-    database: 'webchat_8991'
+    database: 'webchat_' + port
 };
-
-//設定 listen port
-const port = 8991;
 
 
 //取得時間
@@ -48,16 +48,17 @@ const rid_registry = function(data) {
     });
     
     //查詢 rid 是否存在
-    let sql = 'SELECT * FROM user_registry WHERE rid = "' + data.rid + '";';
+    // let sql = 'SELECT * FROM user_registry WHERE rid = "' + data.rid + '";';
+    let sql = 'SELECT * FROM user_registry WHERE rid = "' + data.frid + '";';
     conn.query(sql, function (err, result, fiels) {
         // if (err) throw err;
 
         if (result.length > 0) {
-            let sql = 'UPDATE user_registry SET fpc = "' + data.fpc + '"';
-            sql = sql + ', online = "' + data.online + '"';
-            sql = sql + ', host_name = "' + data.host_name + '"';
-            sql = sql + ', host_tel = "' + data.host_tel + '"';
-            sql = sql + ' WHERE rid = "' + data.rid + '";';
+            let sql = 'UPDATE user_registry SET fpc = "' + data.ffpc + '"';
+            sql = sql + ', online = "Y"';
+            sql = sql + ', obj_no = "' + data.objNo + '"';
+            sql = sql + ', message_from = "' + data.mFrom + '"';
+            sql = sql + ' WHERE rid = "' + data.frid + '";';
             
             conn.query(sql, function (err) {
                 // if (err) throw err;
@@ -65,9 +66,11 @@ const rid_registry = function(data) {
             });
         }
         else {
-            let sql = 'INSERT INTO user_registry SET rid = "' + data.rid + '"';
-            sql = sql + ', fpc = "' + data.fpc + '"';
-            sql = sql + ', online = "' + data.online + '";';
+            let sql = 'INSERT INTO user_registry SET rid = "' + data.frid + '"';
+            sql = sql + ', fpc = "' + data.ffpc + '"';
+            sql = sql + ', online = "Y"';
+            sql = sql + ', obj_no = "' + data.objNo + '"';
+            sql = sql + ', message_from = "' + data.mFrom + '";';
             
             conn.query(sql, function (err) {
                 // if (err) throw err;
@@ -149,7 +152,8 @@ const image_registry = function(msg_arr, _url) {
         conn.end(function(err){
             // if(err) throw err;
             
-            msg_arr.image = '<a href="' + _url + '" target="_blank">' + msg_arr.image + '</a>' ;
+            if((_url == '') || (_url == undefined)) msg_arr.image = msg_arr.image;
+            else msg_arr.image = '<a href="' + _url + '" target="_blank">' + msg_arr.image + '</a>';
             let msg = JSON.stringify(msg_arr);
             
             msg_arr.actionType = 'image';
@@ -211,8 +215,7 @@ const send_sync = function(msg) {
     let msg_arr = JSON.parse(msg);
     
     //更新連線紀錄
-    let json = {rid: msg_arr.frid, fpc: msg_arr.ffpc, host_name: msg_arr.h_name, host_tel: msg_arr.h_tel, online: 'Y'};
-    rid_registry(json);
+    rid_registry(msg_arr);
     
     //message register
     let conn = db_create();
@@ -244,9 +247,9 @@ const sendImageBlob = function(_port, msg_arr) {
     });
     
     let post_options = {
-        host: 'bot168.azurewebsites.net',
+        host: 'ub001.accuhit.net',
         port: '80',
-        path: '/blob/webchat_image.php',
+        path: '/data/pacific/chat_image/webchat_image.php',
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -288,21 +291,17 @@ io.on('connection', function(socket){
     console.log(getDateTime() + ' a user connected(' + socket_id);
     
     //建立連線資訊
-    socket.emit('register', socket_id);
+    socket.emit('registered', socket_id);
     
     //紀錄建立連線
-    let json = {rid: socket_id, fpc: '', online: 'Y'};
+    let json = {frid: socket_id, ffpc: '', objNo: '', mFrom: ''};
     rid_registry(json);
     
     //發送訊息
     socket.on('message', function(msg){
         console.log('message: ' + msg);
         let msg_arr = JSON.parse(msg);
-        
-        //更新連線紀錄
-        let json = {rid: msg_arr.frid, fpc: msg_arr.ffpc, host_name: msg_arr.h_name, host_tel: msg_arr.h_tel, online: 'Y'};
-        rid_registry(json);
-        
+
         //紀錄訊息內容
         message_registry(msg);
                 
@@ -314,21 +313,15 @@ io.on('connection', function(socket){
         // console.log('message: ' + msg);
         let msg_arr = JSON.parse(msg);
         
-        //更新連線紀錄
-        let json = {rid: msg_arr.frid, fpc: msg_arr.ffpc, host_name: msg_arr.h_name, host_tel: msg_arr.h_tel, online: 'Y'};
-        rid_registry(json);
-        
         //紀錄圖片訊息
         sendImageBlob(port, msg_arr);
-        
-        // io.to(msg_arr.trid).emit('sendImage', msg);
     });
     
     //建立連線
     socket.on('sync', function(msg){
         let msg_arr = JSON.parse(msg);
         msg_arr.actionType = 'sync';
-        // io.to(msg_arr.trid).emit('online', msg);
+                
         send_sync(JSON.stringify(msg_arr));
     });
     
@@ -336,7 +329,7 @@ io.on('connection', function(socket){
     socket.on('sync_ok', function(msg){
         let msg_arr = JSON.parse(msg);
         msg_arr.actionType = 'sync_ok';
-        // io.to(msg_arr.trid).emit('online', msg);
+        
         send_sync(JSON.stringify(msg_arr));
     });
     
