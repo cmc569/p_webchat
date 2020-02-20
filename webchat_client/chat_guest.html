@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="no-js">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>WebChat - Guest</title>
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="IE=11; IE=10; IE=9; IE=8; IE=7" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.8.2/css/all.css'>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+TC:100,300,400,500,700,900|Roboto:100,300,400,500,700,900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
+    <script src="js/chat.js"></script>
+    
+    <style>
+    .flash{
+        animation:flash 1s ease infinite;
+    }
+
+    @keyframes flash {
+        0% {opacity:0;}
+        100%{opacity:1;}
+    }
+    .form-group {
+        margin-top: 5px;
+        text-align: center;
+        padding: 0;
+        margin-bottom: 0;
+        overflow: hidden;
+    }
+    .form-control {
+        font-family: 'Noto Sans TC', sans-serif;
+        display: block;
+        width: 100%;
+        height: 34px;
+        padding: 6px 12px;
+        font-size: 13px;
+        line-height: 1.42857143;
+        color: #555;
+        margin: 5px 0;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+        -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+        -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+    .service{
+        font-size: 13px;
+        background-color: #50c0c4;
+        width: 100%;
+        padding: 8px 0;
+        border-radius: 5px;
+        color: #ffffff;
+        display: inline-block;
+        text-align: center;
+        margin-top: 10px;
+    }
+    </style>
+</head>
+
+<body>
+    <!-- 收合時 --------------------------------------------------------------------->
+    <div id="bot-chat1" style="display: none;">
+        <div class="header-chat">
+            <div class="head-home"></div>
+        </div>
+        <div class="home-chat">
+            <a id="informasi" class="informasi" href="#" title="跟我聯絡">
+                <div class="info-avatar">
+                    <img src="img/p.png" />
+                </div>
+                <div class="info-chat" style="margin-top: 5px">
+                    <span class="chat-label" id="host_welcome">您好!我是服務專員，有任何想詢問的可以隨時跟我聯絡喔~</span>
+                </div>
+            </a>
+        </div>
+        <i id="flash_notify" class="fas fa-exclamation-circle flash" style="position: absolute;top: 6px;right: 30px;color: #fef7c0;display: none;"></i>
+        <!-- <a class="close-chat" href="javascript:void">×</a> -->
+    </div>
+    
+    <!-- 等待連線 --------------------------------------------------------------------->
+    <div id="bot-waiting" style="display: none;">
+        <div class="header-chat">
+        </div>
+        <div class="home-chat">
+            <div class="informasi">
+                <div class="info-chat" style="text-align: center">
+                    <span class="chat-label">請稍等，目前連線中~</span>
+                    <img src="img/disconnected.png" style="width: 50%;height: auto">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 展開時 -------------------------------------------------------------------->
+    <div id="bot-chat" style="display: none;">
+        <div class="chat_header">
+            <div class="chat_option">
+                <div class="header_img">
+                    <img class="image-icon" src="img/p-1.png" />
+                </div>
+                <span id="chat_head"></span> <br> <span class="agent" id="host_tel"></span> <span class="online">(Offline)</span>
+                <input type="hidden" id="frid" placeholder="frid">
+                <input type="hidden" id="trid" placeholder="trid">
+                <input type="hidden" id="ffpc" placeholder="ffpc">
+                <input type="hidden" id="tfpc" placeholder="tfpc">
+                <input type="hidden" id="objNo" placeholder="objNo">
+                <input type="hidden" id="mFrom" value="G">
+                <input type="hidden" id="h_name" placeholder="h_name">
+                <input type="hidden" id="h_tel" placeholder="h_tel">
+            </div>
+        </div>
+        <div class="chat_converse" id="chat_converse">
+        </div>
+        <div class="start-chat" style="clear: both">
+            <div class="blanter-msg">
+                <input style="display:none" id="input-image-hidden" onchange="get_image(this)" type="file" accept="image/jpeg, image/png">
+                <button onclick="HandleBrowseClick('input-image-hidden');" class="upload-pic"><i class="fas fa-camera" style="color: #bbb;font-size: 1.6em;margin-right: 10px"></i></button>
+                <textarea id="chat-input" placeholder="Send a message" maxlength="120" row="2" disabled></textarea>
+                <a href="Javascript:sendMsg()" id="send-it"><i class="zmdi zmdi-mail-send"></i></a>
+            </div>
+        </div>
+        <a class="close-chat1" href="javascript:void" style="top: 5px">×</a>
+    </div>
+    
+    <!-- 客戶資料 -------------------------------------------------------------------->
+    <div id="bot-form" style="display: none;">
+        <div class="chat_header">
+            <div class="chat_option" style="text-align: center;padding-top: 10px">
+                <span id="chat_head">線上客服</span>
+            </div>
+        </div>
+        <div class="chat_converse">
+            <div style="padding: 0 20px">
+                <p style="color: #666;font-size: 13px;line-height: 22px">您好!<br>
+                    正在通知專員上線為您服務，請填寫下方資料後進入，由專員致電給您，謝謝~</p>
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="form_name" placeholder="姓名">
+                        <input type="text" class="form-control" id="form_tel" placeholder="電話：0912345678">
+                    </div>
+                    <a href="#" class="service" style="color: #ffffff" onclick="enter_chat()">進入線上客服</a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!--此頁上傳圖片 ---------------------------------------------------->
+    <script>
+    function HandleBrowseClick(input_image) {
+        var fileinput = document.getElementById(input_image);
+        fileinput.click();
+    }
+    </script>
+</body>
+
+</html>
